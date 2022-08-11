@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  titanicapi:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    command: ["python","run.py"]
+    depends_on:
+      - postgres
+    environment:
+      - FLASK_ENV=development
+      - MIGRATE=TRUE
+      - dbuser=postgres
+      - dbpass=postgres
+      - dbhost=postgres
+      - dbname=people
+    networks:
+      - titanic
+    ports:
+      - '80:5000'
+
+  postgres:
+    image: postgres:14.1-alpine
+    restart: always
+    networks:
+      - titanic
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=people
+    ports:
+      - '5434:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+
+volumes:
+  db:
+    driver: local
+    
+networks:
+  titanic:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.100.0.0/16
+         gateway: 10.100.0.1
